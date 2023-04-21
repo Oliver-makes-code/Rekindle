@@ -7,14 +7,11 @@ A class at it's most basic defines a name
 class Example()
 ```
 
-A class can define methods and fields,
-with a private-by-default policy.
+A class can define methods and fields.
 ```
 class Example() {
-    // Private!
-    let someVar = 15; // Type inferred to be int
-
-    // Public!
+    let someVar = 15
+    
     pub fun someFunc() {
         print("owo")
     }
@@ -72,14 +69,5 @@ class Example(pub child: ChildClass) {
         defer let someVar -> child
         defer fun someFunc() -> child
     }
-}
-```
-
-Fields and children are immutable by default,
-making developers conscious of when they need to mutate values.
-
-```
-class Example(child: mut ChildClass) {
-    let someVar: mut = 15
 }
 ```
