@@ -11,7 +11,7 @@ trait SomeTrait {
 ```
 
 Classes and enums can implement traits,
-and external code can implement traits on foreign classes.
+and external code can implement traits on foreign classes,
 and foreign traits on their classes.
 
 ```
