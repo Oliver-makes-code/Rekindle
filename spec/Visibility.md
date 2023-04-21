@@ -9,5 +9,5 @@ and you make something public by adding it in the declaration
 ```
 pub let something: mut = 15 // Type inferred to int
 
-class SomeClass(pub child: mut SomeOtherClass /* Immutable! */)
+class SomeClass(pub child: mut SomeOtherClass)
 ```
