@@ -3,7 +3,7 @@
 We have lambdas which can be used as parameters and to make DSLs
 
 ```
-fun hasLambda(thing: int, action: fun(int) int) {
+fun hasLambda(thing: int, action: fun(int) -> int) {
     action(thing)
 }
 

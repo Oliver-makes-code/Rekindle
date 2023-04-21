@@ -12,9 +12,9 @@ A function can be used as a variable,
 for example, in a lambda
 
 ```
-let someFunc: fun(int) int = |value| {return value}
+let someFunc: fun(int) -> int = |value| {return value}
 
-let otherFunc = main // Resolves to fun(String[]) int
+let otherFunc = main // Resolves to fun(String[]) -> int
 ```
 
 A function can specify a scope,
@@ -30,7 +30,7 @@ scope args don't need a type.
 ```
 class SomeClass {
     fun someFunc(this) {
-
+        //...
     }
 }
 ```
