@@ -16,3 +16,21 @@ let someFunc: fun(int) int = |value| {return value}
 
 let otherFunc = main // Resolves to fun(String[]) int
 ```
+
+A function can specify a scope,
+which allows you to call it on a class
+
+```
+fun someFunc(this: SomeStruct) {}
+```
+
+If you're within a class, enum, or trait,
+scope args don't need a type.
+
+```
+class SomeClass {
+    fun someFunc(this) {
+
+    }
+}
+```
