@@ -11,7 +11,7 @@ A class can define methods and fields.
 ```
 class Example() {
     let someVar = 15
-    
+
     pub fun someFunc() {
         print("owo")
     }
@@ -20,7 +20,6 @@ class Example() {
 
 A class can implement a trait,
 allowing functions requiring a specific trait to use it.
-All fields and methods defined in a trait are public.
 
 ```
 class Example() {

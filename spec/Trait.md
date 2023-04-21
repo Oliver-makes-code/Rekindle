@@ -1,6 +1,7 @@
 # Traits
 
-We have traits, which are an abstract set of methods and fields
+We have traits, which are an abstract set of methods and fields.
+All fields and methods defined in a trait are public.
 
 ```
 trait SomeTrait {
