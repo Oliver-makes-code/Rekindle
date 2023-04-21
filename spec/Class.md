@@ -54,6 +54,10 @@ which are defined in the constructor.
 If you defer a trait to a child,
 you cannot override any methods in said trait.
 
+Children are much like fields, however,
+fields cannot be deferred to traits,
+like children can.
+
 ```
 class Example(pub child: ChildClass) {
     defer ExampleTrait -> child
