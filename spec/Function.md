@@ -18,10 +18,10 @@ let otherFunc = main // Resolves to fun(String[]) -> int
 ```
 
 A function can specify a scope,
-which allows you to call it on a class
+which allows you to call it on a class, enum, or trait
 
 ```
-fun someFunc(this: SomeStruct) {}
+fun someFunc(this: SomeClass) {}
 ```
 
 If you're within a class, enum, or trait,
