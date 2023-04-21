@@ -42,7 +42,11 @@ You check against different values in the enum
 
 ```
 fun useEnum(enum: SomeEnum) {
-    if enum -> SOME_VALUE(someClass) {
+    let SOME_VALUE(someClass) -> enum else {
+        //...
+    }
+
+    if SOME_VALUE(someClass) -> enum {
         someClass.method()
     }
 
