@@ -36,7 +36,7 @@ class Example() {
 ```
 
 This might be a bit too many indents for some,
-so we allow the use of `impl x for y`
+so we allow the use of `impl x for y` and `defer x for y`
 
 We also allow developers to implement traits on foreign classes,
 But you're only allowed access to public fields and methods.
@@ -47,6 +47,8 @@ impl ExampleTrait for Example {
         print("owo")
     }
 }
+
+defer AnotherTrait for Example -> child
 ```
 
 We do not have a standard inheritance structure,
