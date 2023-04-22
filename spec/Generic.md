@@ -42,3 +42,12 @@ fun create(): typeof SomeTrait {
     }
 }
 ```
+
+The compiler will not infer meta-types,
+as it can cause unintended bugs where you expected an instance.
+
+```
+let thing = SomeClass // Fail!
+
+let thing: typeof SomeTrait = SomeClass // Succeed!
+```
