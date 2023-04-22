@@ -86,3 +86,13 @@ class Example(child: ChildClass) {
     }
 }
 ```
+
+You can create inline classes as well.
+This acts the same as normal classes,
+but with the ability to dynamically generate impls.
+
+```
+let Example = class() {
+
+}
+```
