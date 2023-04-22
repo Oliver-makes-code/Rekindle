@@ -93,6 +93,6 @@ but with the ability to dynamically generate impls.
 
 ```
 let Example = class() {
-
+    //...
 }
 ```

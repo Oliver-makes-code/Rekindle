@@ -27,7 +27,7 @@ let something: Example(Foo)
 Due to this, meta-type parameters can only be at the beginning of arguments.
 
 ```
-class Example(a: int, b: typeof SomeTrait) // Fails to compile!
+class Example(a: int, b: typeof SomeTrait) // Doesn't compile
 ```
 
 Meta-types can be used as retrn parameters,
@@ -47,7 +47,7 @@ The compiler will not infer meta-types,
 as it can cause unintended bugs where you expected an instance.
 
 ```
-let thing = SomeClass // Fail!
+let thing = SomeClass // Doesn't compile
 
-let thing: typeof SomeTrait = SomeClass // Succeed!
+let thing: typeof SomeTrait = SomeClass // Compiles
 ```
