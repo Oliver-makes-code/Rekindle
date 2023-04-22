@@ -40,23 +40,33 @@ enum SomeEnum {
 For control flow, 
 You check against different values in the enum
 
-```
-fun useEnum(enum: SomeEnum) {
-    let SOME_VALUE(someClass) -> enum else {
-        //...
-    }
+For example, cast-else, which casts to a certain value,
+and if it's impossible it runs a block, which must return
 
-    if SOME_VALUE(someClass) -> enum {
+```
+let SOME_VALUE(someClass) -> someEnum else {
+    return
+}
+```
+
+There's also if-let, which runs a block if the cast can be done
+
+```
+if let SOME_VALUE(someClass) -> someEnum {
+    someClass.method()
+}
+```
+
+And finally, there's usage in pattern matching, with the `when` statement
+
+```
+when someEnum {
+    SOME_VALUE(someClass) {
         someClass.method()
     }
 
-    when enum {
-        SOME_VALUE(someClass) {
-            someClass.method()
-        }
-        else {
-            //...
-        }
+    else {
+        //...
     }
 }
 ```
