@@ -29,3 +29,16 @@ Due to this, meta-type parameters can only be at the beginning of arguments.
 ```
 class Example(a: int, b: typeof SomeTrait) // Fails to compile!
 ```
+
+Meta-types can be used as retrn parameters,
+for a way to create type generators.
+
+```
+fun create(): typeof SomeTrait {
+    return class() {
+        impl SomeTrait {
+            //...
+        }
+    }
+}
+```
