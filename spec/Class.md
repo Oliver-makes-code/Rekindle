@@ -59,7 +59,7 @@ fields cannot be deferred to traits,
 like children can.
 
 ```
-class Example(pub child: ChildClass) {
+class Example(child: ChildClass) {
     defer ExampleTrait -> child
 }
 ```
@@ -67,10 +67,22 @@ class Example(pub child: ChildClass) {
 You can also defer specific methods/fields in a trait to children
 
 ```
-class Example(pub child: ChildClass) {
+class Example(child: ChildClass) {
     impl ExampleTrait {
         defer let someVar -> child
         defer fun someFunc() -> child
+    }
+}
+```
+
+If you only want to implement a couple functions in a trait,
+and want to defer the rest to a child, you can `defer * -> x`
+
+```
+class Example(child: ChildClass) {
+    impl ExampleTrait {
+        let someVar = 15
+        defer * -> child
     }
 }
 ```
