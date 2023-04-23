@@ -96,3 +96,23 @@ let Example = class() {
     //...
 }
 ```
+
+Classes can define a constructor override,
+allowing more intricate behaviour in class initialization.
+
+```
+class Example(someChild: AnotherClass) {
+    constructor(someChild: AnotherClass, thing: int): this(someChild) {
+        print("awoo! " + thing)
+    }
+}
+```
+
+This overwrites the behaviour from the original constructor,
+meaning you have to use the override
+
+```
+Example(AnotherClass()) // Fails to compile
+
+Example(AnotherClass(), 15) // Compiles
+```
