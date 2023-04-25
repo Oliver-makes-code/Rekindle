@@ -102,7 +102,7 @@ allowing more intricate behaviour in class initialization.
 
 ```
 class Example(someChild: AnotherClass) {
-    constructor(someChild: AnotherClass, thing: int): this(someChild) {
+    new(someChild: AnotherClass, thing: int): this(someChild) {
         print("awoo! " + thing)
     }
 }
