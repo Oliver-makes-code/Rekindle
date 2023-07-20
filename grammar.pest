@@ -1,0 +1,85 @@
+// Whitespace
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{ ("//" ~ (!"\n" ~ ANY)*) | ("/*" ~ (!"*/" ~ ANY)* ~ "*/") }
+
+// Keywords
+keyword = { 
+    "as" |
+    "break" |
+    "class" |
+    "continue" |
+    "defer" |
+    "enum" |
+    "for" |
+    "from" |
+    "fun" |
+    "if" |
+    "impl" |
+    "import" |
+    "let" |
+    "loop" |
+    "mut" |
+    "pub" |
+    "return" |
+    "this" |
+    "trait" |
+    "typeof" |
+    "when" |
+    "while"
+}
+
+// Identifier
+ident = @{
+    (ident_disallow | !ident_disallow) ~
+    ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")*
+}
+    ident_disallow = @{ keyword | bool }
+
+// Numbers
+num = {
+	((num_hex | num_oct | num_bin) ~ num_int?) |
+    (num_dec_dot ~ num_float?) |
+    (num_dec ~ (num_float | num_int)?)
+}
+    num_size = { "8" | "16" | "32" | "64" | "size" }
+    num_sign = { "0" | "1" }
+    num_hex = @{ num_sign ~ "x" ~ ASCII_HEX_DIGIT+ }
+    num_oct = @{ num_sign ~ "o" ~ ASCII_OCT_DIGIT+ }
+    num_bin = @{ num_sign ~ "b" ~ ASCII_BIN_DIGIT+ }
+    num_dec = { ASCII_DIGIT+ }
+    num_dec_dot = @{ num_dec+ ~ "." ~ num_dec* }
+    num_int = @{ (^"u" | ^"i") ~ num_size? }
+    num_float = @{ ^"f" ~ num_size? }
+
+// Booleans
+bool = { "true" | "false" }
+
+// Strings
+str = { "\"" ~ str_segment* ~ "\"" }
+	str_segment = _{
+    	str_run |
+    	("\\" ~ str_escape) |
+        ("$" ~ ident) | 
+        ("${" ~ /*TODO: use expression here*/ value ~ "}")
+    }
+    str_run = {
+    	(!("\"" | "\\" | "$") ~ ANY)+
+    }
+    str_escape = {
+    	("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t" | "$") |
+        ("u" ~ ASCII_HEX_DIGIT{4})
+    }
+
+// Expressions
+expr = { expr_set? ~ expr_chain_invoke ~ (expr_arith ~ expr_chain_invoke)* }
+	expr_set = { (expr_chain ~ "=") }
+    expr_value = _{ ident | num | bool | str }
+    expr_paren = { "(" ~ expr ~ ")" }
+    expr_value_paren = _{ expr_value | expr_paren }
+    expr_arith = { "+" | "-" | "*" | "/" }
+    expr_list = { expr ~ ("," ~ expr)* }
+    expr_access = { ("." ~ ident) }
+    expr_index = { "[" ~ expr_list ~ "]" }
+    expr_invoke = { "(" ~ (expr_list ~ (";" ~ expr_list)?)? ~ ")" }
+    expr_chain = { expr_value_paren ~ (expr_access | expr_index)* }
+    expr_chain_invoke = { expr_value_paren ~ (expr_access | expr_index | expr_invoke)* }
