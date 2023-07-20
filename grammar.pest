@@ -73,7 +73,8 @@ str = { "\"" ~ str_segment* ~ "\"" }
 
 // Expressions
 expr = { expr_segment ~ (expr_arith ~ expr_segment)* }
-    expr_value = _{ ident | num | bool | str }
+    expr_value = _{ ( ident ~ expr_trait_invoke?) | num | bool | str }
+    expr_trait_invoke = { ":" ~ ident }
     expr_paren = { "(" ~ expr ~ ")" }
     expr_value_paren = _{ expr_value | expr_paren }
     expr_arith = { "+" | "-" | "*" | "/" | "==" | "!=" | "&&" | "||" }
