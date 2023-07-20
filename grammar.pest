@@ -1,8 +1,10 @@
-// Whitespace
-WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+// Whitespace/Comments
+WHITESPACE = _{ " " | "\t" }
 COMMENT = _{ ("//" ~ (!"\n" ~ ANY)*) | ("/*" ~ (!"*/" ~ ANY)* ~ "*/") }
+air = @{(WHITESPACE|COMMENT)}
+line_end = _{ "\n" | ";" }
 
-// Keywords
+// Keywords and primitives
 keyword = { 
     "as" |
     "break" |
@@ -21,7 +23,6 @@ keyword = {
     "mut" |
     "pub" |
     "return" |
-    "this" |
     "trait" |
     "typeof" |
     "when" |
@@ -60,7 +61,7 @@ str = { "\"" ~ str_segment* ~ "\"" }
     	str_run |
     	("\\" ~ str_escape) |
         ("$" ~ ident) | 
-        ("${" ~ /*TODO: use expression here*/ value ~ "}")
+        ("${" ~ expr ~ "}")
     }
     str_run = {
     	(!("\"" | "\\" | "$") ~ ANY)+
@@ -71,15 +72,64 @@ str = { "\"" ~ str_segment* ~ "\"" }
     }
 
 // Expressions
-expr = { expr_set? ~ expr_chain_invoke ~ (expr_arith ~ expr_chain_invoke)* }
-	expr_set = { (expr_chain ~ "=") }
+expr = { expr_segment ~ (expr_arith ~ expr_segment)* }
     expr_value = _{ ident | num | bool | str }
     expr_paren = { "(" ~ expr ~ ")" }
     expr_value_paren = _{ expr_value | expr_paren }
-    expr_arith = { "+" | "-" | "*" | "/" }
+    expr_arith = { "+" | "-" | "*" | "/" | "==" | "!=" | "&&" | "||" }
     expr_list = { expr ~ ("," ~ expr)* }
     expr_access = { ("." ~ ident) }
     expr_index = { "[" ~ expr_list ~ "]" }
     expr_invoke = { "(" ~ (expr_list ~ (";" ~ expr_list)?)? ~ ")" }
     expr_chain = { expr_value_paren ~ (expr_access | expr_index)* }
     expr_chain_invoke = { expr_value_paren ~ (expr_access | expr_index | expr_invoke)* }
+    expr_segment = { ( expr_assign | expr_chain_invoke ) }
+    expr_assign = { expr_assign_inc | expr_assign_eq }
+    expr_assign_eq = { expr_chain ~ expr_assign_eq_op ~ expr }
+    expr_assign_eq_op = { "=" | "+=" | "-=" | "*=" | "/=" }
+    expr_assign_inc = _{ expr_assign_inc_pre | expr_assign_inc_post }
+    expr_assign_inc_pre = { expr_assign_inc_op ~ expr_chain }
+    expr_assign_inc_post = { expr_chain ~ expr_assign_inc_op }
+    expr_assign_inc_op = { "--" | "++" }
+
+block = {
+    "{" ~ (line|ctrl|block)* ~ "}"
+}
+
+line = _{
+    ( line_invoke | expr_assign | line_return | line_break | line_continue )? ~ line_end
+}
+    line_invoke = {
+        expr_chain ~ expr_invoke+ ~ ("." ~ expr_chain ~ expr_invoke+)?
+    }
+    line_return = {
+        "return" | (line_return_lit ~ expr?)
+    }
+    line_return_lit = @{ "return" ~ air }
+    line_break = @{ "break" ~ air }
+    line_continue = @{ "continue" ~ air }
+
+// Function
+fun = {
+    fun_start ~ ident ~ fun_params ~ ident?
+}
+    fun_start = @{"fun" ~ air}
+    fun_params = { "(" ~ ((fun_this | fun_param) ~ ("," ~ fun_param)*)? ~ ")" }
+    fun_param = { ident ~ fun_type }
+    fun_this = { "this" ~ fun_type? }
+    fun_type = _{ ":" ~ ident } 
+
+// Control Flow
+ctrl = { ctrl_expr | ctrl_noexpr | ctrl_if }
+    ctrl_expr = { ctrl_expr_start ~ expr ~ block }
+    ctrl_expr_start = @{ ("for"|"when"|"while") ~ air }
+    ctrl_noexpr = { ctrl_expr_start ~ block }
+    ctrl_noexpr_start = @{ "loop" ~ air }
+    ctrl_if = {
+        ctrl_if_start ~ expr ~ block ~
+        ( ctrl_else_if_start ~ expr ~ block )* ~
+        ( ctrl_else_start ~ block )?
+    }
+    ctrl_if_start = @{ "if" ~ air }
+    ctrl_else_start = @{ "else" }
+    ctrl_else_if_start = @{ "else" ~ air ~ ctrl_if_start }
