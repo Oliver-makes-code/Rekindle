@@ -117,3 +117,41 @@ Example(AnotherClass()) // Fails to compile
 
 Example(AnotherClass(), 15) // Compiles
 ```
+
+Casting takes two main forms,
+direct and indirect.
+Direct casting fails if the type is not assignable.
+Indirect casting returns `None` when the type is not assignable.
+
+```rk
+// Direct
+value:Type
+value as Type
+
+// Indirect
+value:?Type
+value as? Type
+```
+
+Classes can declare static variables by using the `global` keyword
+
+```rk
+class SomeClass {
+    global let someGlobal
+}
+```
+
+Accessing a static value (function, field, etc) from yourself,
+you need to use `This` (capital T)
+
+```rk
+class SomeClass {
+    fun someFun() {
+        //stuff
+    }
+
+    fun anotherFun() {
+        This.someFun()
+    }
+}
+```
