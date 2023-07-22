@@ -1,7 +1,3 @@
-use std::{str::Chars, char, cell::OnceCell, iter::Enumerate};
-
-use regex::Regex;
-
 use crate::cursor::StringCursor;
 
 #[derive(Debug)]
@@ -9,7 +5,8 @@ pub enum Token {
     Ident(Location, String),
     Keyword(Location, Keyword),
     Symbol(Location, Symbol),
-    Whitespace(Location),
+    Whitespace(Location, char),
+    Number(Location, String),
 }
 
 #[derive(Debug)]
@@ -46,7 +43,7 @@ pub enum Keyword {
 
 #[derive(Debug)]
 pub enum Symbol {
-    And,             // &
+    And,                    // &
     Asterisk,               // *
     BracketClose(Bracket),  // ], }, ), >
     BracketOpen(Bracket),   // [, {, (, <
@@ -75,8 +72,8 @@ impl Token {
         let char = cursor.current()?;
 
         if char.is_whitespace() {
-            Self::extract_whitespace(cursor);
-            return Some(Self::Whitespace(Location::new(start_pos, cursor.idx)))
+            Self::extract_whitespace(cursor, char);
+            return Some(Self::Whitespace(Location::new(start_pos, cursor.idx), char))
         }
 
         if let Some(symbol) = Symbol::from_char(char) {
@@ -85,7 +82,7 @@ impl Token {
         }
 
         if char.is_alphabetic() || char == '_' {
-            let ident = Self::extract_ident(cursor, char);
+            let ident = Self::extract_ident(cursor);
             let loc = Location::new(start_pos, cursor.idx);
             if let Some(keyword) = Keyword::from_str(&ident) {
                 return Some(Self::Keyword(loc, keyword))
@@ -93,20 +90,38 @@ impl Token {
             return Some(Self::Ident(loc, ident))
         }
 
+        if char.is_numeric() {
+            let num = Self::extract_number(cursor);
+            return Some(Self::Number(Location::new(start_pos, cursor.idx), num))
+        }
+
         None
     }
 
-    fn extract_whitespace(cursor: &mut StringCursor) {
-        while let Some(char) = cursor.current() && char.is_whitespace() {
+    fn extract_whitespace(cursor: &mut StringCursor, whitespace_char: char) {
+        while let Some(char) = cursor.current() && char == whitespace_char {
             cursor.advance();
         }
     }
 
-    fn extract_ident(cursor: &mut StringCursor, char: char) -> String {
-        let mut str = char.to_string();
-        cursor.advance();
+    fn extract_ident(cursor: &mut StringCursor) -> String {
+        let mut str = "".to_string();
 
         while let Some(char) = cursor.current() && (char.is_alphanumeric() || char == '_') {
+            str.push(char);
+            cursor.advance();
+        }
+
+        str
+    }
+
+    fn extract_number(cursor: &mut StringCursor) -> String {
+        let mut str = "".to_string();
+
+        while let Some(char) = cursor.current() && (char.is_numeric() || char == '_' || char == '.') {
+            if char == '.' && str.contains('.') {
+                break
+            }
             str.push(char);
             cursor.advance();
         }
@@ -194,16 +209,6 @@ impl Bracket {
             '}' => Some(Self::Curly),
             ')' => Some(Self::Paren),
             ']' => Some(Self::Square),
-            _ => None,
-        }
-    }
-
-    pub fn from_char(char: char) -> Option<Self> {
-        match char {
-            '<' | '>' => Some(Self::Angle),
-            '{' | '}' => Some(Self::Curly),
-            '(' | ')' => Some(Self::Paren),
-            '[' | ']' => Some(Self::Square),
             _ => None,
         }
     }
