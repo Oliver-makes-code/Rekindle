@@ -1,21 +1,30 @@
 use crate::cursor::StringCursor;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Token {
     Ident(Location, String),
     Keyword(Location, Keyword),
+    Number(Location, String),
+    String(Location, String, char),
     Symbol(Location, Symbol),
     Whitespace(Location, char),
-    Number(Location, String),
+    Eof,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum TokenError {
+    UnclosedString(Location),
+    MultiDottedNumber(Location),
+    UnknownChar(Location, char),
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub struct Location {
     pub start: usize,
     pub end: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Keyword {
     As,
     Break,
@@ -28,6 +37,7 @@ pub enum Keyword {
     Fun,
     Global,
     If,
+    Is,
     Impl,
     Import,
     Let,
@@ -41,7 +51,7 @@ pub enum Keyword {
     While,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Symbol {
     And,                    // &
     Asterisk,               // *
@@ -58,7 +68,7 @@ pub enum Symbol {
     Plus,                   // +
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Bracket {
     Angle,  // <>
     Curly,  // {}
@@ -67,35 +77,75 @@ pub enum Bracket {
 }
 
 impl Token {
-    pub fn from_cursor(cursor: &mut StringCursor) -> Option<Self> {
+    pub fn from_cursor(cursor: &mut StringCursor) -> Result<Self, TokenError> {
         let start_pos = cursor.idx;
-        let char = cursor.current()?;
+        if cursor.idx >= cursor.string.len() {
+            return Ok(Self::Eof)
+        }
+        let char = cursor.current().unwrap();
 
         if char.is_whitespace() {
             Self::extract_whitespace(cursor, char);
-            return Some(Self::Whitespace(Location::new(start_pos, cursor.idx), char))
+            return Ok(Self::Whitespace(Location::new(start_pos, cursor.idx), char))
         }
 
         if let Some(symbol) = Symbol::from_char(char) {
             cursor.advance();
-            return Some(Token::Symbol(Location::new(start_pos, cursor.idx), symbol))
+            return Ok(Token::Symbol(Location::new(start_pos, cursor.idx), symbol))
         }
 
         if char.is_alphabetic() || char == '_' {
             let ident = Self::extract_ident(cursor);
             let loc = Location::new(start_pos, cursor.idx);
             if let Some(keyword) = Keyword::from_str(&ident) {
-                return Some(Self::Keyword(loc, keyword))
+                return Ok(Self::Keyword(loc, keyword))
             }
-            return Some(Self::Ident(loc, ident))
+            return Ok(Self::Ident(loc, ident))
         }
 
         if char.is_numeric() {
             let num = Self::extract_number(cursor);
-            return Some(Self::Number(Location::new(start_pos, cursor.idx), num))
+            let loc = Location::new(start_pos, cursor.idx);
+            if let Some(num) = num {
+                return Ok(Self::Number(loc, num))
+            }
+            return Err(TokenError::MultiDottedNumber(loc))
         }
 
-        None
+        if char == '\'' || char == '"' {
+            let str = Self::extract_string(cursor, char);
+            let loc = Location::new(start_pos, cursor.idx);
+            if let Some(str) = str {
+                return Ok(Self::String(loc, str, char))
+            }
+            return Err(TokenError::UnclosedString(loc))
+        }
+
+        Err(TokenError::UnknownChar(Location::new(start_pos, cursor.idx), char))
+    }
+
+    fn extract_string(cursor: &mut StringCursor, closing_char: char) -> Option<String> {
+        cursor.advance();
+        let mut str = "".to_string();
+        let mut closed = false;
+        while let Some(char) = cursor.current() {
+            cursor.advance();
+            if char == closing_char {
+                closed = true;
+                break
+            }
+            str.push(char);
+            if char == '\\' && let Some(char) = cursor.current() {
+                cursor.advance();
+                str.push(char);
+            }
+        }
+
+        if !closed {
+            None
+        } else {
+            Some(str)
+        }
     }
 
     fn extract_whitespace(cursor: &mut StringCursor, whitespace_char: char) {
@@ -115,18 +165,18 @@ impl Token {
         str
     }
 
-    fn extract_number(cursor: &mut StringCursor) -> String {
+    fn extract_number(cursor: &mut StringCursor) -> Option<String> {
         let mut str = "".to_string();
 
         while let Some(char) = cursor.current() && (char.is_numeric() || char == '_' || char == '.') {
             if char == '.' && str.contains('.') {
-                break
+                return None
             }
             str.push(char);
             cursor.advance();
         }
 
-        str
+        Some(str)
     }
 }
 
@@ -150,6 +200,7 @@ impl Keyword {
             "fun" => Some(Self::Fun),
             "global" => Some(Self::Global),
             "if" => Some(Self::If),
+            "is" => Some(Self::Is),
             "impl" => Some(Self::Impl),
             "import" => Some(Self::Import),
             "let" => Some(Self::Let),

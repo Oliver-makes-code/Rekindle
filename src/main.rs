@@ -10,8 +10,20 @@ mod cursor;
 mod token;
 
 fn main() {
-    let mut cursor = StringCursor::from("Hello, world!\n\tThis is fun! 123.45.67.89");
-    while let Some(token) = Token::from_cursor(&mut cursor) {
-        println!("{:?}", token);
+    let mut cursor = StringCursor::from("Hello, world!\n\tThis is fun! 123.45 67.89");
+    loop {
+        let token = Token::from_cursor(&mut cursor);
+        match token {
+            Ok(token) => {
+                println!("{:?}", token);
+                if token == Token::Eof {
+                    break
+                }
+            },
+            Err(err) => {
+                print!("{:?}", err);
+                break
+            }
+        }
     }
 }
