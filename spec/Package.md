@@ -14,15 +14,38 @@ import "path/to/file.rk" as SomeFile
 ```
 
 For importing from libraries provided by a build tool,
-you can use `from`.
-This will use the path relative to the library root.
+you prefix with a colon.
 
 ```rk
-import "path/to/file.rk" from "some-lib" as SomeLib
+import ":some-lib"
+```
+
+If you need to import from the library root you can do
+
+```rk
+import ":some-lib/path/to/file.rk"
 ```
 
 You can also import libraries from a URL.
 
 ```rk
-import "mod.rk" from "https://example.com/rekindle-lib"
+import "https://example.com/rekindle-lib/mod.rk"
+```
+
+You can import specific items from a file as follows
+
+```rk
+import "some_file.rk".Test
+
+import "owo.rk".{
+    SomeNamespace,
+    some_func
+}
+
+import "uwu.rk".Test as Test2
+
+import "nya.rk".{
+    SomeNamespace as AnotherNamespace,
+    some_func as another_func
+}
 ```

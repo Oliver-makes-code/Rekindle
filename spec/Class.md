@@ -13,7 +13,7 @@ A class can define methods and fields.
 class Example() {
     let someVar = 15
 
-    pub fun someFunc() {
+    pub fun some_func() {
         print("owo")
     }
 }
@@ -70,8 +70,8 @@ You can also defer specific methods/fields in a trait to children
 ```rk
 class Example(child: ChildClass) {
     impl ExampleTrait {
-        defer let someVar -> child
-        defer fun someFunc() -> child
+        defer let some_var -> child
+        defer fun some_func() -> child
     }
 }
 ```
@@ -82,7 +82,7 @@ and want to defer the rest to a child, you can `defer * -> x`
 ```rk
 class Example(child: ChildClass) {
     impl ExampleTrait {
-        let someVar = 15
+        let some_var = 15
         defer * -> child
     }
 }
@@ -102,8 +102,8 @@ Classes can define a constructor override,
 allowing more intricate behaviour in class initialization.
 
 ```rk
-class Example(someChild: AnotherClass) {
-    new(someChild: AnotherClass, thing: i32) this(someChild) {
+class Example(some_child: AnotherClass) {
+    new(some_child: AnotherClass, thing: int) this(someChild) {
         print("awoo! " + thing)
     }
 }
@@ -137,7 +137,7 @@ Classes can declare static variables by using the `global` keyword
 
 ```rk
 class SomeClass {
-    global let someGlobal
+    global let some_global
 }
 ```
 
@@ -146,12 +146,12 @@ you need to use `This` (capital T)
 
 ```rk
 class SomeClass {
-    fun someFun() {
+    fun some_fun() {
         //stuff
     }
 
-    fun anotherFun() {
-        This.someFun()
+    fun another_fun() {
+        This.some_fun()
     }
 }
 ```

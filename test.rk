@@ -1,0 +1,9 @@
+pub fun main(owo: typeof Idk; nya: int) {
+    // owo
+    print("Hello, World!")
+    /*
+        uwu
+    */
+}
+
+pub let mut owo = 15

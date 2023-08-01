@@ -28,7 +28,7 @@ let something: Example(Foo)
 Due to this, meta-type parameters can only be at the beginning of arguments.
 
 ```rk
-class Example(a: i32, b: typeof SomeTrait) // Doesn't compile
+class Example(a: int, b: typeof SomeTrait) // Doesn't compile
 ```
 
 Meta-types can be used as retrn parameters,

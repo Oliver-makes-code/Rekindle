@@ -1,29 +1,27 @@
-#![feature(
-    iter_advance_by,
-    let_chains
-)]
+#![feature(iter_advance_by, let_chains, decl_macro)]
 
 use cursor::StringCursor;
-use token::Token;
 
-mod cursor;
-mod token;
+use crate::token::Token;
+
+pub mod cursor;
+pub mod token;
+pub mod tree;
 
 fn main() {
-    let mut cursor = StringCursor::from("Hello, world!\n\tThis is fun! 123.45 67.89");
+    let mut cursor = StringCursor::from(include_str!("../test.rk"));
     loop {
-        let token = Token::from_cursor(&mut cursor);
-        match token {
-            Ok(token) => {
-                println!("{:?}", token);
-                if token == Token::Eof {
-                    break
-                }
-            },
-            Err(err) => {
-                print!("{:?}", err);
-                break
-            }
+        let token = cursor.next_token();
+
+        if let Err(err) = token {
+            println!("{:?}", err);
+            break;
+        }
+
+        let token = token.unwrap();
+        println!("{:?}", token);
+        if let Token::Eof = token {
+            break;
         }
     }
 }

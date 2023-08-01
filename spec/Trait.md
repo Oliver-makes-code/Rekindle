@@ -5,8 +5,8 @@ All fields and methods defined in a trait are public.
 
 ```rk
 trait SomeTrait {
-    let someField: i32
-    fun someFunc()
+    let some_field: int
+    fun some_func()
 }
 ```
 
@@ -16,8 +16,8 @@ and foreign traits on their classes.
 
 ```rk
 impl SomeTrait for SomeClass {
-    let someField = 15
-    fun someFunc() {
+    let some_field = 15
+    fun some_func() {
         someField += 1
     }
 }

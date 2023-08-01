@@ -4,7 +4,7 @@ Our enums are largely inspired by Rust's, with a few changes.
 
 ```rk
 enum SomeEnum {
-    SOME_VALUE
+    SomeValue
 }
 ```
 
@@ -13,7 +13,7 @@ Allowing better control flow in code.
 
 ```rk
 enum SomeEnum {
-    SOME_VALUE(SomeClass)
+    SomeValue(SomeClass)
 }
 ```
 
@@ -21,7 +21,7 @@ To get a value of an enum,
 you need to provide the stored value
 
 ```rk
-let value = SomeEnum.SOME_VALUE(SomeClass())
+let value = SomeEnum.SomeValue(SomeClass())
 ```
 
 An enum acts largely like a class,
@@ -29,7 +29,7 @@ allowing you to implement traits.
 
 ```rk
 enum SomeEnum {
-    SOME_VALUE(SomeClass)
+    SomeValue(SomeClass)
 
     impl SomeTrait {
         //...
@@ -44,7 +44,7 @@ For example, cast-else, which casts to a certain value,
 and if it's impossible it runs a block, which must return
 
 ```rk
-let SOME_VALUE(someClass) -> someEnum else {
+let SomeValue(someClass) -> someEnum else {
     return
 }
 ```
@@ -52,7 +52,7 @@ let SOME_VALUE(someClass) -> someEnum else {
 There's also if-let, which runs a block if the cast can be done
 
 ```rk
-if let SOME_VALUE(someClass) -> someEnum {
+if let SomeValue(someClass) -> someEnum {
     someClass.method()
 }
 ```
@@ -61,7 +61,7 @@ And finally, there's usage in pattern matching, with the `when` statement
 
 ```rk
 when someEnum {
-    SOME_VALUE(someClass) {
+    SomeValue(someClass) {
         someClass.method()
     }
 
