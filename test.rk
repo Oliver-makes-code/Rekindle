@@ -3,6 +3,8 @@ pub class SomeClass(pub owo: int) {
         return owo
     }
 
+    defer Number -> owo
+
     impl Default {
         fun default() This {
             return SomeClass(0)
@@ -12,6 +14,10 @@ pub class SomeClass(pub owo: int) {
 
 fun get_default(T: typeof Default) T {
     return T.default()
+}
+
+fun square(n: Number) Number {
+    return n * n
 }
 
 object SomeObject {
@@ -29,9 +35,13 @@ fun get_a(obj: AnotherObject) int {
 
 fun main() {
     let some_class = get_default(SomeClass)
+    let s = square(some_class)
     let some_obj = SomeObject {
         a = 15
         b = "owo"
     }
-    get_a(some_obj)
+    let a = get_a(some_obj)
+
+    print(s)
+    print(a)
 }
