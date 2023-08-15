@@ -21,10 +21,10 @@ impl From<TokenError> for ParseError {
 pub macro next_non_space($cursor: expr) {
     loop {
         let token = $cursor.next_token()?;
-        if let crate::token::Token::Comment(_, _) = token {
+        if let crate::token::Token::Comment(_) = token.t {
             continue;
         }
-        if let crate::token::Token::Whitespace(_, _) = token {
+        if let crate::token::Token::Whitespace(_) = token.t {
             continue;
         }
         break token;

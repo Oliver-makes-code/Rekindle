@@ -1,4 +1,7 @@
-use crate::token::{Token, TokenError};
+use crate::{
+    location::Locational,
+    token::{Token, TokenError},
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct StringCursor {
@@ -14,7 +17,7 @@ impl StringCursor {
         }
     }
 
-    pub fn next_token(&mut self) -> Result<Token, TokenError> {
+    pub fn next_token(&mut self) -> Locational<Result<Token, TokenError>> {
         Token::from_cursor(self)
     }
 

@@ -1,6 +1,7 @@
 use crate::{
     cursor::StringCursor,
-    token::{Keyword, Token, Symbol, Bracket},
+    location::Locational,
+    token::{Bracket, Keyword, Symbol, Token},
     tree::next_non_space,
 };
 
@@ -24,101 +25,199 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn from_cursor(cursor: &mut StringCursor) -> Result<Self, ParseError> {
-        let token = next_non_space!(cursor);
+    pub fn from_cursor(cursor: &mut StringCursor) -> Locational<Result<Self, ParseError>> {
+        let Locational { loc, t: token } = next_non_space!(cursor);
+        let startidx = loc.start;
 
         match token {
-            Token::Keyword(_, Keyword::Typeof) =>
-                return Ok(Self::Meta {
-                    base_type: Box::new(Self::from_cursor(cursor)?),
-                }),
-            Token::Keyword(_, Keyword::Fun) =>
-                return Self::extract_fun(cursor),
-            Token::Ident(_, ident) =>
-                return Self::extract_basic(cursor, &ident),
-            Token::Eof => 
-                return Err(ParseError::UnexpectedToken(Token::Eof, "not EOF".to_string())),
-            t => {
-                cursor.idx = t.get_start_idx().unwrap();
-                return Ok(Self::Empty)
+            Token::Keyword(Keyword::Typeof) => {
+                let Locational { loc: _, t: base } = Self::from_cursor(cursor)?;
+                Locational::from(
+                    startidx,
+                    cursor.idx,
+                    Ok(Type::Meta {
+                        base_type: Box::new(base),
+                    }),
+                )
+            }
+            Token::Keyword(Keyword::Fun) => {
+                let Locational { loc: _, t: fun } = Self::extract_fun(cursor, startidx)?;
+                return Locational::from(startidx, cursor.idx, Ok(fun));
+            }
+            Token::Ident(ident) => {
+                let Locational { loc: _, t: basic } =
+                    Self::extract_basic(cursor, &ident, startidx)?;
+                return Locational::from(startidx, cursor.idx, Ok(basic));
+            }
+            Token::Eof => {
+                return Locational::from(
+                    startidx,
+                    cursor.idx,
+                    Err(ParseError::UnexpectedToken(
+                        Token::Eof,
+                        "not EOF".to_string(),
+                    )),
+                )
+            }
+            _ => {
+                cursor.idx = startidx;
+                return Locational::from(startidx, startidx, Ok(Self::Empty));
             }
         }
     }
 
-    fn extract_param_list(cursor: &mut StringCursor, multi_phase: bool) -> Result<(Vec<Type>, Vec<Type>), ParseError> {
+    fn extract_param_list(
+        cursor: &mut StringCursor,
+        multi_phase: bool,
+    ) -> Locational<Result<(Vec<Type>, Vec<Type>), ParseError>> {
         let mut meta_parameters: Vec<Type> = vec![];
         let mut value_parameters: Vec<Type> = vec![];
 
-        match cursor.next_token()? {
-            Token::Symbol(_, Symbol::BracketClose(Bracket::Paren)) => return Ok((meta_parameters, value_parameters)),
-            Token::Eof => return Err(ParseError::UnexpectedToken(Token::Eof, "type or `)`".to_string())),
-            t => cursor.idx = t.get_start_idx().unwrap()
+        let Locational { loc, t: token } = next_non_space!(cursor);
+
+        let startidx = loc.start;
+
+        match token {
+            Token::Symbol(Symbol::BracketClose(Bracket::Paren)) => {
+                return Locational::from_loc(loc, Ok((meta_parameters, value_parameters)))
+            }
+            Token::Eof => {
+                return Locational::from_loc(
+                    loc,
+                    Err(ParseError::UnexpectedToken(
+                        Token::Eof,
+                        "type or `)`".to_string(),
+                    )),
+                )
+            }
+            _ => cursor.idx = loc.start,
         }
 
-        while let Ok(param) = Self::from_cursor(cursor) {
+        while let Locational {
+            loc: _,
+            t: Ok(param),
+        } = Self::from_cursor(cursor)
+        {
             match param {
                 Self::Empty => {
-                    let curr = cursor.next_token()?;
+                    let Locational { loc, t: curr } = cursor.next_token()?;
                     match curr {
-                        Token::Symbol(_, Symbol::BracketClose(Bracket::Paren)) => break,
-                        t => return Err(ParseError::UnexpectedToken(t, "type or `,`".to_string()))
+                        Token::Symbol(Symbol::BracketClose(Bracket::Paren)) => break,
+                        t => {
+                            return Locational::from_loc(
+                                loc,
+                                Err(ParseError::UnexpectedToken(t, "type or `,`".to_string())),
+                            )
+                        }
                     }
-                },
-                p => value_parameters.push(p)
+                }
+                p => value_parameters.push(p),
             }
-            
-            let token = next_non_space!(cursor);
+
+            let Locational { loc, t: token } = next_non_space!(cursor);
 
             match token {
-                Token::Symbol(_, Symbol::Semicolon) => {
+                Token::Symbol(Symbol::Semicolon) => {
                     meta_parameters = value_parameters;
                     value_parameters = vec![];
-                },
-                Token::Symbol(_, Symbol::Comma) => continue,
-                Token::Symbol(_, Symbol::BracketClose(Bracket::Paren)) => return Ok((meta_parameters, value_parameters)),
-                t => return Err(ParseError::UnexpectedToken(t, if multi_phase { "`,`, `;`, `)`" } else { "`,`, `)`" }.to_string()))
-            }
-        }
-        
-        Ok((meta_parameters, value_parameters))
-    }
-
-    fn extract_basic(cursor: &mut StringCursor, ident: &str) -> Result<Self, ParseError> {
-        let token = next_non_space!(cursor);
-        match token {
-            Token::Symbol(_, Symbol::BracketOpen(Bracket::Paren)) => {}
-            t => {
-                if let Some(i) = t.get_start_idx() {
-                    cursor.idx = i;
                 }
-                return Ok(Self::Basic { name: ident.to_string(), parameters: vec![] })
+                Token::Symbol(Symbol::Comma) => continue,
+                Token::Symbol(Symbol::BracketClose(Bracket::Paren)) => break,
+                t => {
+                    return Locational::from_loc(
+                        loc,
+                        Err(ParseError::UnexpectedToken(
+                            t,
+                            if multi_phase {
+                                "`,`, `;`, `)`"
+                            } else {
+                                "`,`, `)`"
+                            }
+                            .to_string(),
+                        )),
+                    )
+                }
             }
         }
 
-        let (_, parameters) = Self::extract_param_list(cursor, false)?;
-
-        Ok(Self::Basic {
-            name: ident.to_string(),
-            parameters: parameters
-        })
+        Locational::from(
+            startidx,
+            cursor.idx,
+            Ok((meta_parameters, value_parameters)),
+        )
     }
 
-    fn extract_fun(cursor: &mut StringCursor) -> Result<Self, ParseError> {
-        let token = next_non_space!(cursor);
-        
+    fn extract_basic(
+        cursor: &mut StringCursor,
+        ident: &str,
+        startidx: usize,
+    ) -> Locational<Result<Self, ParseError>> {
+        let Locational { loc, t: token } = next_non_space!(cursor);
+
         match token {
-            Token::Symbol(_, Symbol::BracketOpen(Bracket::Paren)) => {}
-            t => return Err(ParseError::UnexpectedToken(t, "`(`".to_string()))
+            Token::Symbol(Symbol::BracketOpen(Bracket::Paren)) => {}
+            _ => {
+                cursor.idx = loc.start;
+                return Locational::from(
+                    startidx,
+                    cursor.idx,
+                    Ok(Self::Basic {
+                        name: ident.to_string(),
+                        parameters: vec![],
+                    }),
+                );
+            }
         }
-        
-        let (meta_parameters, value_parameters) = Self::extract_param_list(cursor, true)?;
 
-        let return_type = Self::from_cursor(cursor)?;
+        let Locational {
+            loc: _,
+            t: (_, parameters),
+        } = Self::extract_param_list(cursor, false)?;
 
-        Ok(Self::Fun {
-            meta_parameters,
-            value_parameters,
-            return_type: Box::new(return_type)
-        })
+        Locational::from(
+            startidx,
+            cursor.idx,
+            Ok(Self::Basic {
+                name: ident.to_string(),
+                parameters: parameters,
+            }),
+        )
+    }
+
+    fn extract_fun(
+        cursor: &mut StringCursor,
+        startidx: usize,
+    ) -> Locational<Result<Self, ParseError>> {
+        let Locational { loc, t: token } = next_non_space!(cursor);
+
+        match token {
+            Token::Symbol(Symbol::BracketOpen(Bracket::Paren)) => {}
+            t => {
+                return Locational::from_loc(
+                    loc,
+                    Err(ParseError::UnexpectedToken(t, "`(`".to_string())),
+                )
+            }
+        }
+
+        let Locational {
+            loc: _,
+            t: (meta_parameters, value_parameters),
+        } = Self::extract_param_list(cursor, true)?;
+
+        let Locational {
+            loc: _,
+            t: return_type,
+        } = Self::from_cursor(cursor)?;
+
+        Locational::from(
+            startidx,
+            cursor.idx,
+            Ok(Self::Fun {
+                meta_parameters,
+                value_parameters,
+                return_type: Box::new(return_type),
+            }),
+        )
     }
 }

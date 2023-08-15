@@ -1,28 +1,25 @@
-use crate::cursor::StringCursor;
+use crate::{
+    cursor::StringCursor,
+    location::{Location, Locational},
+};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Token {
-    Ident(Location, String),
-    Keyword(Location, Keyword),
-    Number(Location, String),
-    String(Location, String, char),
-    Symbol(Location, Symbol),
-    Whitespace(Location, char),
-    Comment(Location, String),
+    Ident(String),
+    Keyword(Keyword),
+    Number(String),
+    String(String, char),
+    Symbol(Symbol),
+    Whitespace(char),
+    Comment(String),
     Eof,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum TokenError {
-    UnclosedString(Location),
-    MultiDottedNumber(Location),
-    UnknownChar(Location, char),
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct Location {
-    pub start: usize,
-    pub end: usize,
+    UnclosedString,
+    MultiDottedNumber,
+    UnknownChar(char),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -98,33 +95,16 @@ pub enum Bracket {
 }
 
 impl Token {
-    pub fn get_start_idx(&self) -> Option<usize> {
-        match self {
-            Self::Eof => None,
-            Self::Ident(location, _)
-            | Self::Keyword(location, _)
-            | Self::Number(location, _)
-            | Self::String(location, _, _)
-            | Self::Symbol(location, _)
-            | Self::Whitespace(location, _)
-            | Self::Comment(location, _) => Some(location.start),
-        }
-    }
-
-    pub fn start_idx_or(&self, default: usize) -> usize {
-        self.get_start_idx().unwrap_or(default)
-    }
-
-    pub fn from_cursor(cursor: &mut StringCursor) -> Result<Self, TokenError> {
+    pub fn from_cursor(cursor: &mut StringCursor) -> Locational<Result<Self, TokenError>> {
         let start_pos = cursor.idx;
         if cursor.idx >= cursor.string.len() {
-            return Ok(Self::Eof);
+            return Locational::from(start_pos, start_pos, Ok(Self::Eof));
         }
         let char = cursor.current().unwrap();
 
         if char.is_whitespace() {
             Self::extract_whitespace(cursor, char);
-            return Ok(Self::Whitespace(Location::new(start_pos, cursor.idx), char));
+            return Locational::from(start_pos, cursor.idx, Ok(Self::Whitespace(char)));
         }
 
         if char == '/' {
@@ -132,47 +112,44 @@ impl Token {
             let char = cursor.current();
             if let Some(char) = char && (char == '/' || char == '*') {
                 cursor.advance();
-                return Ok(Self::Comment(Location::new(start_pos, cursor.idx), Self::extract_comment(cursor, char == '*')));
+                return Locational::from(start_pos, cursor.idx, Ok(Self::Comment(Self::extract_comment(cursor, char == '*'))));
             } else {
                 cursor.idx = start_pos;
             }
         }
 
         if let Some(symbol) = Symbol::from_cursor(cursor) {
-            return Ok(Token::Symbol(Location::new(start_pos, cursor.idx), symbol));
+            return Locational::from(start_pos, cursor.idx, Ok(Token::Symbol(symbol)));
         }
 
         if char.is_alphabetic() || char == '_' {
             let ident = Self::extract_ident(cursor);
             let loc = Location::new(start_pos, cursor.idx);
             if let Some(keyword) = Keyword::from_str(&ident) {
-                return Ok(Self::Keyword(loc, keyword));
+                return Locational::from_loc(loc, Ok(Self::Keyword(keyword)));
             }
-            return Ok(Self::Ident(loc, ident));
+            return Locational::from_loc(loc, Ok(Self::Ident(ident)));
         }
 
         if char.is_numeric() {
             let num = Self::extract_number(cursor);
             let loc = Location::new(start_pos, cursor.idx);
             if let Some(num) = num {
-                return Ok(Self::Number(loc, num));
+                return Locational::from_loc(loc, Ok(Self::Number(num)));
             }
-            return Err(TokenError::MultiDottedNumber(loc));
+            return Locational::from_loc(loc, Err(TokenError::MultiDottedNumber));
         }
 
         if char == '\'' || char == '"' {
             let str = Self::extract_string(cursor, char);
             let loc = Location::new(start_pos, cursor.idx);
             if let Some(str) = str {
-                return Ok(Self::String(loc, str, char));
+                return Locational::from_loc(loc, Ok(Self::String(str, char)));
             }
-            return Err(TokenError::UnclosedString(loc));
+            return Locational::from_loc(loc, Err(TokenError::UnclosedString));
         }
 
-        Err(TokenError::UnknownChar(
-            Location::new(start_pos, cursor.idx),
-            char,
-        ))
+        Locational::from(start_pos, cursor.idx, Err(TokenError::UnknownChar(char)))
     }
 
     fn extract_string(cursor: &mut StringCursor, closing_char: char) -> Option<String> {
@@ -249,12 +226,6 @@ impl Token {
         }
 
         Some(str)
-    }
-}
-
-impl Location {
-    pub fn new(start: usize, end: usize) -> Self {
-        Self { start, end }
     }
 }
 
