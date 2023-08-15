@@ -13,28 +13,3 @@ fun some_func() {
     //...
 }
 ```
-
-There's also the `repr` function,
-which determines how a data structure is represented
-
-```rk
-$repr(js = class)
-class SomeJsClass()
-
-$repr(js = object)
-class SomeJsObject()
-
-let a = SomeJsClass()
-let b = SomeJsObject()
-```
-
-The above code will result in (close to) the following JS code
-
-```js
-class SomeJsClass {
-    constructor() {}
-}
-
-const a = new SomeJsClass()
-const b = {}
-```
