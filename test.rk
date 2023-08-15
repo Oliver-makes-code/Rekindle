@@ -16,7 +16,7 @@ fun get_default(T: typeof Default) T {
 
 object SomeObject {
     a: int
-    b: stirng
+    b: string
 }
 
 object AnotherObject {
