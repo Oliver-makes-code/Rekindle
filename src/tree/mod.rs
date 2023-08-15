@@ -6,6 +6,7 @@ pub mod traits;
 pub mod types;
 pub mod variables;
 
+#[derive(Debug, Clone)]
 pub enum ParseError {
     Token(TokenError),
     UnexpectedToken(Token, String),

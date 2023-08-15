@@ -12,7 +12,7 @@ class Example(type: typeof SomeTrait)
 
 The meta-type can be used as a type,
 just as normal types can.
-Meta-types need to be separated from other parameters by a semicolon.
+Meta-types intended to be used in type annotations need to be separated from other parameters by a semicolon.
 
 ```rk
 class Example(type: typeof SomeTrait; value: type)
@@ -25,13 +25,7 @@ you include it in the parenthesis.
 let something: Example(Foo)
 ```
 
-Due to this, meta-type parameters can only be at the beginning of arguments.
-
-```rk
-class Example(a: int, b: typeof SomeTrait) // Doesn't compile
-```
-
-Meta-types can be used as retrn parameters,
+Meta-types can be used as return parameters,
 for a way to create type generators.
 
 ```rk
