@@ -1,9 +1,37 @@
-pub fun main(owo: typeof Idk; nya: int) {
-    // owo
-    print("Hello, World!")
-    /*
-        uwu
-    */
+pub class SomeClass(pub owo: int) {
+    pub fun get_owo(this) int {
+        return owo
+    }
+
+    impl Default {
+        fun default() This {
+            return SomeClass(0)
+        }
+    }
 }
 
-pub let mut owo = 15
+fun get_default(T: typeof Default) T {
+    return T.default()
+}
+
+object SomeObject {
+    a: int
+    b: stirng
+}
+
+object AnotherObject {
+    a: int
+}
+
+fun get_a(obj: AnotherObject) int {
+    return obj.a
+}
+
+fun main() {
+    let some_class = get_default(SomeClass)
+    let some_obj = SomeObject {
+        a = 15
+        b = "owo"
+    }
+    get_a(some_obj)
+}
