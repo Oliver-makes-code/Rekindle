@@ -7,7 +7,7 @@ use crate::{
 
 use super::ParseError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Type {
     Basic {
         name: String,
@@ -219,5 +219,55 @@ impl Type {
                 return_type: Box::new(return_type),
             }),
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{cursor::StringCursor, tree::ParseError};
+
+    use super::Type;
+
+    #[test]
+    fn test_fun_type() -> Result<(), ParseError> {
+        let str = "fun(typeof SomeGenericClass(int); int) SomeGenericClass(int)";
+        let mut cursor = StringCursor::from(str);
+        let result = Type::from_cursor(&mut cursor).t?;
+        
+        assert_eq!(
+            result,
+            Type::Fun {
+                meta_parameters: vec![
+                    Type::Meta {
+                        base_type: Box::new(Type::Basic {
+                            name: "SomeGenericClass".into(),
+                            parameters: vec![
+                                Type::Basic {
+                                    name: "int".into(),
+                                    parameters: vec![]
+                                }
+                            ]
+                        })
+                    }
+                ],
+                value_parameters: vec![
+                    Type::Basic {
+                        name: "int".into(),
+                        parameters: vec![]
+                    }
+                ],
+                return_type: Box::new(Type::Basic {
+                    name: "SomeGenericClass".into(),
+                    parameters: vec![
+                        Type::Basic {
+                            name: "int".into(),
+                            parameters: vec![]
+                        }
+                    ]
+                })
+            }
+        );
+
+        Ok(())
     }
 }
