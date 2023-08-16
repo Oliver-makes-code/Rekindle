@@ -53,10 +53,7 @@ impl Type {
                 return Locational::from(
                     startidx,
                     cursor.idx,
-                    Err(ParseError::UnexpectedToken(
-                        Token::Eof,
-                        "not EOF".to_string(),
-                    )),
+                    Ok(Type::Empty),
                 )
             }
             _ => {
@@ -265,6 +262,24 @@ mod test {
                         }
                     ]
                 })
+            }
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_empty_fun_type() -> Result<(), ParseError> {
+        let str = "fun()";
+        let mut cursor = StringCursor::from(str);
+        let result = Type::from_cursor(&mut cursor).t?;
+
+        assert_eq!(
+            result,
+            Type::Fun {
+                meta_parameters: vec![],
+                value_parameters: vec![],
+                return_type: Box::new(Type::Empty)
             }
         );
 
