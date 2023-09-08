@@ -1,48 +1,46 @@
 # Generics
 
-We have a meta-type that points to a type,
-allowing developers to include them as parameters.
-
-The `typeof` operator creates a meta-type,
-that consists of the proceeding traits
+Generics are defined with the `type` keyword.
+They allow things to take in types as parameters.
 
 ```rk
-class Example(type: typeof SomeTrait)
-```
-
-The meta-type can be used as a type,
-just as normal types can.
-Meta-types intended to be used in type annotations need to be separated from other parameters by a semicolon.
-
-```rk
-class Example(type: typeof SomeTrait; value: type)
-```
-
-To reference something that uses meta-type parameters in an annotation,
-you include it in the parenthesis.
-
-```rk
-let something: Example(Foo)
-```
-
-Meta-types can be used as return parameters,
-for a way to create type generators.
-
-```rk
-fun create() typeof SomeTrait {
-    return class() {
-        impl SomeTrait {
-            //...
-        }
-    }
+fun some_func(type T; t: T) {
+    // do stuff with t
 }
 ```
 
-The compiler will not infer meta-types,
-as it can cause unintended bugs where you expected an instance.
+They can also be bounded,
+allowing you to specify what you need to call it
 
 ```rk
-let thing = SomeClass // Doesn't compile
+fun default(type T: Default) T {
+    return T.default()
+}
+```
 
-let thing: typeof SomeTrait = SomeClass // Compiles
+You can specify them outside parameters to use them as a type alias
+
+```rk
+type SomeType: Array(int)
+```
+
+Type aliases can also have parameters
+
+```rk
+type Holder(Element): Either(Map(string, Element), Array(Element))
+```
+
+They can be used in functions and similar like such
+
+```rk
+fun get_values(type Element; holder: Holder(Element)) Array(Element) {
+    when holder {
+        First(map) {
+            return map.values()
+        }
+        Second(arr) {
+            return arr
+        }
+    }
+}
 ```
