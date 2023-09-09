@@ -19,6 +19,8 @@ pub enum TokenType {
     String,
     Symbol(Symbol),
     Whitespace,
+    UnknownChar,
+    Eof
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -191,7 +193,17 @@ impl Token {
             });
         }
 
-        None
+        let Some(_) = cursor.next() else {
+            cursor.last();
+            return Some(Self {
+                value: TokenType::Eof,
+                src: cursor.fold()
+            })
+        };
+        Some(Self {
+            value: TokenType::UnknownChar,
+            src: cursor.fold()
+        })
     }
 }
 

@@ -1,5 +1,7 @@
 use std::{fmt::Debug, ops::Deref, sync::Arc};
 
+use super::{Token, TokenType};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StringCursor {
     pub src: Arc<str>,
@@ -116,6 +118,22 @@ impl StringCursor {
 
     pub fn consume_any(&mut self, chars: &str) {
         while self.expect_any(chars) {}
+    }
+}
+
+impl From<StringCursor> for Vec<Token> {
+    fn from(mut cursor: StringCursor) -> Self {
+        let mut out = vec![];
+
+        while let Some(token) = Token::from(&mut cursor) {
+            out.push(token.clone());
+
+            if let Token { src: _, value: TokenType::Eof } = token {
+                break;
+            }
+        }
+
+        out
     }
 }
 
