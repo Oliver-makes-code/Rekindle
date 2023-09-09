@@ -23,13 +23,6 @@ impl SomeTrait for SomeClass {
 }
 ```
 
-Traits can also me crated as a union of two or more other traits,
-containing the properties of the operands.
-
-```rk
-trait SomeUnion -> SomeTrait + AnotherTrait
-```
-
 A problem that could occur with multiple traits is the overlap of functions and methods,
 this can be amended by spcifying the trait you want to operate on.
 

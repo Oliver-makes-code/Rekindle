@@ -1,47 +1,19 @@
-pub class SomeClass(pub owo: int) {
-    pub fun get_owo(this) int {
-        return owo
+fun bubble_sort(type Element: Ordered; mut values: Array(Element)) {
+  let swap_temp: Element
+  let swapped: bool
+  
+  for i in Range(0, values.length - 1) {
+    swapped = false
+    for j in Range(0, values.length - i - 1) {
+      if arr[j] > arr[j+1] {
+        swap_temp = arr[j]
+        arr[j] = arr[j+1]
+        arr[j+1] = swap_temp
+        swapped = true
+      }
     }
-
-    defer Number -> owo
-
-    impl Default {
-        fun default() This {
-            return SomeClass(0)
-        }
+    if !swapped {
+      break
     }
-}
-
-fun get_default(T: typeof Default) T {
-    return T.default()
-}
-
-fun square(n: Number) Number {
-    return n * n
-}
-
-object SomeObject {
-    a: int
-    b: string
-}
-
-object AnotherObject {
-    a: int
-}
-
-fun get_a(obj: AnotherObject) int {
-    return obj.a
-}
-
-fun main() {
-    let some_class = get_default(SomeClass)
-    let s = square(some_class)
-    let some_obj = SomeObject {
-        a = 15
-        b = "owo"
-    }
-    let a = get_a(some_obj)
-
-    print(s)
-    print(a)
+  }
 }
